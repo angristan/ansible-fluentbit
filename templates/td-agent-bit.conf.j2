@@ -1,0 +1,35 @@
+# {{ansible_managed}}
+
+[SERVICE]
+    flush        {{ fluentbit_service_flush_seconds }}
+    daemon       {{ (fluentbit_service_daemon | bool) | ternary('On', 'Off' ) }}
+    log_Level    {{ fluentbit_service_log_level }}
+
+    parsers_file parsers.conf
+{% for parsers_file in fluentbit_service_custom_parsers_file %}
+    parsers_file {{ parsers_file }}
+{% endfor %}
+
+    plugins_file plugins.conf
+
+    http_server  {{ (fluentbit_service_enable_metrics | bool) | ternary('On', 'Off' ) }}
+    http_listen  {{ fluentbit_service_metrics_listen_ip }}
+    http_port    {{ fluentbit_service_metrics_listen_port }}
+
+{% for input in fluentbit_inputs %}
+[INPUT]
+{% for key in input %}
+    {{ key }} {{ input[key] }}
+{% endfor %}
+{% endfor %}
+
+{% for input in fluentbit_outputs %}
+[OUTPUT]
+{% for key in input %}
+    {{ key }} {{ input[key] }}
+{% endfor %}
+{% endfor %}
+
+{% for additional_conf_file in fluentbit_additional_conf_files %}
+@INCLUDE {{ additional_conf_file.name }}
+{% endfor %}

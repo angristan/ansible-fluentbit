@@ -1,0 +1,26 @@
+---
+- name: Add apt key
+  apt_key:
+    url: http://packages.fluentbit.io/fluentbit.key
+
+- name: 'Ensure the package repository is up to date'
+  apt_repository:
+    repo: 'deb https://packages.fluentbit.io/{{ ansible_distribution | lower }}/{{ ansible_distribution_release }} {{ ansible_distribution_release }} main'
+
+- name: Install fluentbit
+  apt:
+    name: td-agent-bit
+    update_cache: yes
+
+- name: Copy td-agent-bit.conf
+  template:
+    src: td-agent-bit.conf.j2
+    dest: '/etc/td-agent-bit/td-agent-bit.conf'
+  notify:
+    - restart td-agent-bit
+
+- name: Ensure fluentbit (td-agent-bit) service is enabled and started
+  service:
+    name: td-agent-bit
+    state: started
+    enabled: yes
